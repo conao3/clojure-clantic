@@ -98,3 +98,39 @@
     (t/is (= {:a {:b {:c 42}}}
              (c/validate {:a {:b {:c :int}}}
                          {:a {:b {:c 42}}})))))
+
+(t/deftest validate-vector-test
+  (t/testing "vector of primitives"
+    (t/is (= {:ids [1 2 3]}
+             (c/validate {:ids [:int]}
+                         {:ids [1 2 3]}))))
+
+  (t/testing "empty vector"
+    (t/is (= {:ids []}
+             (c/validate {:ids [:int]}
+                         {:ids []}))))
+
+  (t/testing "vector validation error"
+    (t/is (thrown? clojure.lang.ExceptionInfo
+            (c/validate {:ids [:int]}
+                        {:ids [1 "two" 3]}))))
+
+  (t/testing "vector of maps"
+    (t/is (= {:users [{:name "Alice"} {:name "Bob"}]}
+             (c/validate {:users [{:name :string}]}
+                         {:users [{:name "Alice"} {:name "Bob"}]}))))
+
+  (t/testing "vector of maps with extra keys removed"
+    (t/is (= {:users [{:name "Alice"} {:name "Bob"}]}
+             (c/validate {:users [{:name :string}]}
+                         {:users [{:name "Alice" :age 30} {:name "Bob" :extra "data"}]}))))
+
+  (t/testing "vector of maps validation error"
+    (t/is (thrown? clojure.lang.ExceptionInfo
+            (c/validate {:users [{:name :string :age :int}]}
+                        {:users [{:name "Alice" :age "30"}]}))))
+
+  (t/testing "nested vector"
+    (t/is (= {:matrix [[1 2] [3 4]]}
+             (c/validate {:matrix [[:int]]}
+                         {:matrix [[1 2] [3 4]]})))))
