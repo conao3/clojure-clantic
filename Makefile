@@ -5,6 +5,10 @@ all:
 repl:
 	clj -M:dev
 
+.PHONY: update
+update:
+	clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}}' -M -m antq.core --upgrade --force
+
 .PHONY: test
 test:
 	clojure -M:dev -m cognitect.test-runner
