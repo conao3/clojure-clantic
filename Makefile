@@ -3,7 +3,7 @@ all:
 
 .PHONY: repl
 repl:
-	clj -M:dev
+	clj -M:dev:repl
 
 .PHONY: update
 update:
