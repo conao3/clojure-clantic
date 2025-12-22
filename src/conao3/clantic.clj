@@ -15,6 +15,7 @@
 
 (defn- convert-schema [v]
   (cond
+    (fn? v) (convert-schema (v))
     (optional-schema? v) [:maybe (convert-schema (second v))]
     (vector-schema? v) [:vector (convert-schema (first v))]
     (map? v) (schema->malli v)
@@ -34,6 +35,7 @@
 
 (defn- select-value [schema-v v]
   (cond
+    (fn? schema-v) (select-value (schema-v) v)
     (optional-schema? schema-v) (select-value (second schema-v) v)
     (vector-schema? schema-v) (mapv #(select-value (first schema-v) %) v)
     (map? schema-v) (select-by-schema schema-v v)
