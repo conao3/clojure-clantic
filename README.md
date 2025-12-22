@@ -13,22 +13,25 @@ Add to your `deps.edn`:
 ## Usage
 
 ```clojure
-(require '[clantic.core :as c])
+(require '[conao3.clantic :as c])
 
 (c/validate {:name :string :age :int}
-                  {:name "Alice" :age 30})
-;; => {:name "Alice" :age 30}
+            {:name "Alice" :age 30})
+;;=> {:name "Alice" :age 30}
 
 (c/validate {:name :string :age :int}
-                  {:name "Alice" :age "30"})
-;; => throws ExceptionInfo
+            {:name "Alice" :age "30"})
+;;=> throws ExceptionInfo
+
+(c/validate {:a :int} {:a 42 :b 2})
+;;=> {:a 42}  (extra keys are removed)
 ```
 
 ## API
 
 ### validate
 
-Validates a value against a schema and returns the value if valid.
+Validates a value against a schema and returns only the keys defined in the schema.
 
 ```clojure
 (c/validate schema value)
@@ -39,7 +42,7 @@ Validates a value against a schema and returns the value if valid.
 - `value` - The map to validate
 
 **Returns:**
-- The original value if valid
+- A map containing only the keys defined in the schema (extra keys are removed)
 
 **Throws:**
 - `ExceptionInfo` if validation fails, with ex-data containing:

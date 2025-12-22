@@ -13,7 +13,7 @@
   [schema value]
   (let [malli-schema (schema->malli schema)]
     (if (m/validate malli-schema value)
-      value
+      (select-keys value (keys schema))
       (throw (ex-info "Validation failed" {:errors (explain-humanized malli-schema value)
                                            :value value
                                            :schema schema})))))

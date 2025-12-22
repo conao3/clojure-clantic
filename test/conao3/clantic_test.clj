@@ -26,7 +26,11 @@
                                  {:name "Alice"})
                (catch Exception e e))]
       (t/is (= {:age ["missing required key"]}
-               (:errors (ex-data ex)))))))
+               (:errors (ex-data ex))))))
+
+  (t/testing "more keys"
+    (t/is (= {:a 42}
+             (c/validate {:a :int} {:a 42 :b 2})))))
 
 (t/deftest model-validate-types-test
   (t/testing ":string"
