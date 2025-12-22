@@ -9,7 +9,7 @@
 (defn- explain-humanized [schema value]
   (some-> (m/explain schema value) me/humanize))
 
-(defn model-validate
+(defn validate
   [schema value]
   (let [malli-schema (schema->malli schema)]
     (if (m/validate malli-schema value)
@@ -17,4 +17,4 @@
       (throw (ex-info "Validation failed" {:errors (explain-humanized malli-schema value)
                                            :value value
                                            :schema schema})))))
-(m/=> model-validate [:=> [:cat :map :map] :map])
+(m/=> validate [:=> [:cat :map :map] :map])

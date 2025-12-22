@@ -15,23 +15,23 @@ Add to your `deps.edn`:
 ```clojure
 (require '[clantic.core :as c])
 
-(c/model-validate {:name :string :age :int}
+(c/validate {:name :string :age :int}
                   {:name "Alice" :age 30})
 ;; => {:name "Alice" :age 30}
 
-(c/model-validate {:name :string :age :int}
+(c/validate {:name :string :age :int}
                   {:name "Alice" :age "30"})
 ;; => throws ExceptionInfo
 ```
 
 ## API
 
-### model-validate
+### validate
 
 Validates a value against a schema and returns the value if valid.
 
 ```clojure
-(c/model-validate schema value)
+(c/validate schema value)
 ```
 
 **Arguments:**
