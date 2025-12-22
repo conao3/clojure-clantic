@@ -2,3 +2,4 @@
 /target
 /.clj-kondo
 /.lsp
+/.nrepl-port

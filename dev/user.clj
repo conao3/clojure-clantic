@@ -1,5 +1,5 @@
 (ns user
   (:require
-   [malli.instrument :as mi]))
+   [malli.dev :as malli.dev]))
 
-(mi/instrument!)
+(malli.dev/start!)
