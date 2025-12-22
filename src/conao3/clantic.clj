@@ -9,8 +9,7 @@
 (defn- explain-humanized [schema value]
   (some-> (m/explain schema value) me/humanize))
 
-(defn validate
-  [schema value]
+(defn validate [schema value]
   (let [malli-schema (schema->malli schema)]
     (if (m/validate malli-schema value)
       (select-keys value (keys schema))
