@@ -1,6 +1,8 @@
 {:paths ["src"]
 
- :deps {metosin/malli {:mvn/version "0.20.0"}}
+ :deps
+ {org.clojure/clojure {:mvn/version "1.12.3"}
+  metosin/malli {:mvn/version "0.20.0"}}
 
  :aliases
  {:dev {:extra-paths ["dev" "test"]
