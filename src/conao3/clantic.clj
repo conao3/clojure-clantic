@@ -15,6 +15,7 @@
 
 (defn- convert-schema [v]
   (cond
+    (nil? v) :nil
     (fn? v) (convert-schema (v))
     (optional-schema? v) [:maybe (convert-schema (second v))]
     (vector-schema? v) [:vector (convert-schema (first v))]

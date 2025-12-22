@@ -92,6 +92,47 @@ Validates a value against a schema and returns only the keys defined in the sche
 **Modifiers:**
 - `[:optional :type]` - optional field (can be missing or nil)
 
+**Special values:**
+- `nil` - nil value (equivalent to `:nil`)
+
+## Typing DSL
+
+For a more readable schema definition, use the `conao3.clantic.typing` namespace:
+
+```clojure
+(require '[conao3.clantic :as c])
+(require '[conao3.clantic.typing :as t])
+
+(c/validate {:name t/str :age t/int}
+            {:name "Alice" :age 30})
+;;=> {:name "Alice" :age 30}
+
+(c/validate {:name t/str :age (t/optional t/int)}
+            {:name "Alice"})
+;;=> {:name "Alice"}
+
+(c/validate {:ids (t/seq t/int)}
+            {:ids [1 2 3]})
+;;=> {:ids [1 2 3]}
+
+(c/validate {:users (t/seq {:name t/str})}
+            {:users [{:name "Alice"} {:name "Bob"}]})
+;;=> {:users [{:name "Alice"} {:name "Bob"}]}
+```
+
+**Available types:**
+- `t/str` - string
+- `t/int` - integer
+- `t/double` - floating point
+- `t/bool` - boolean
+- `t/keyword` - keyword
+- `t/symbol` - symbol
+- `t/uuid` - UUID
+
+**Composite types:**
+- `(t/seq schema)` - sequence of values
+- `(t/optional schema)` - optional field
+
 ## Development
 
 ```bash
