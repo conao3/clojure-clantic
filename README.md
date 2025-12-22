@@ -25,6 +25,14 @@ Add to your `deps.edn`:
 
 (c/validate {:a :int} {:a 42 :b 2})
 ;;=> {:a 42}  (extra keys are removed)
+
+(c/validate {:user {:name :string :age :int}}
+            {:user {:name "Alice" :age 30}})
+;;=> {:user {:name "Alice" :age 30}}
+
+(c/validate {:user {:name :string}}
+            {:user {:name "Alice" :age 30 :extra "data"}})
+;;=> {:user {:name "Alice"}}  (nested extra keys are also removed)
 ```
 
 ## API
@@ -38,7 +46,7 @@ Validates a value against a schema and returns only the keys defined in the sche
 ```
 
 **Arguments:**
-- `schema` - A map of keyword to malli schema type (e.g., `{:name :string :age :int}`)
+- `schema` - A map of keyword to malli schema type or nested map (e.g., `{:name :string :age :int}` or `{:user {:name :string}}`)
 - `value` - The map to validate
 
 **Returns:**

@@ -74,3 +74,27 @@
     (t/is (= {:v nil} (c/validate {:v :nil} {:v nil})))
     (t/is (thrown? clojure.lang.ExceptionInfo
             (c/validate {:v :nil} {:v "nil"})))))
+
+(t/deftest validate-nested-test
+  (t/testing "nested map"
+    (t/is (= {:user {:name "Alice" :age 30}}
+             (c/validate {:user {:name :string :age :int}}
+                         {:user {:name "Alice" :age 30}}))))
+
+  (t/testing "nested map with extra keys removed"
+    (t/is (= {:user {:name "Alice"}}
+             (c/validate {:user {:name :string}}
+                         {:user {:name "Alice" :age 30}}))))
+
+  (t/testing "nested map validation error"
+    (let [ex (try
+               (c/validate {:user {:name :string :age :int}}
+                           {:user {:name "Alice" :age "30"}})
+               (catch Exception e e))]
+      (t/is (= {:user {:age ["should be an integer"]}}
+               (:errors (ex-data ex))))))
+
+  (t/testing "deeply nested map"
+    (t/is (= {:a {:b {:c 42}}}
+             (c/validate {:a {:b {:c :int}}}
+                         {:a {:b {:c 42}}})))))
