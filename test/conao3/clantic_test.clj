@@ -1,7 +1,7 @@
-(ns clantic.core-test
+(ns conao3.clantic-test
   (:require
    [clojure.test :as t]
-   [clantic.core :as c]))
+   [conao3.clantic :as c]))
 
 (t/deftest validate-test
   (t/testing "returns value for valid data"

@@ -1,4 +1,4 @@
-(ns clantic.core
+(ns conao3.clantic
   (:require
    [malli.core :as m]
    [malli.error :as me]))
