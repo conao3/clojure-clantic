@@ -36,6 +36,7 @@
               clojure
               clj-kondo
               cljstyle
+              uv
             ];
           };
 
