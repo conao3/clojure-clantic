@@ -33,6 +33,22 @@ Add to your `deps.edn`:
 (c/validate {:user {:name :string}}
             {:user {:name "Alice" :age 30 :extra "data"}})
 ;;=> {:user {:name "Alice"}}  (nested extra keys are also removed)
+
+(c/validate {:ids [:int]}
+            {:ids [1 2 3]})
+;;=> {:ids [1 2 3]}  (vector validation)
+
+(c/validate {:users [{:name :string}]}
+            {:users [{:name "Alice" :age 30} {:name "Bob"}]})
+;;=> {:users [{:name "Alice"} {:name "Bob"}]}  (vector of maps)
+
+(c/validate {:name :string :age [:optional :int]}
+            {:name "Alice"})
+;;=> {:name "Alice"}  (optional field can be missing)
+
+(c/validate {:name :string :age [:optional :int]}
+            {:name "Alice" :age nil})
+;;=> {:name "Alice" :age nil}  (optional field can be nil)
 ```
 
 ## API
@@ -67,6 +83,14 @@ Validates a value against a schema and returns only the keys defined in the sche
 - `:symbol` - symbol values
 - `:uuid` - UUID values
 - `:nil` - nil value
+
+**Composite types:**
+- `[:type]` - vector of values (e.g., `[:int]` for vector of integers)
+- `[{:key :type}]` - vector of maps
+- `{:key :type}` - nested map
+
+**Modifiers:**
+- `[:optional :type]` - optional field (can be missing or nil)
 
 ## Development
 

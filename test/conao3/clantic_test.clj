@@ -134,3 +134,44 @@
     (t/is (= {:matrix [[1 2] [3 4]]}
              (c/validate {:matrix [[:int]]}
                          {:matrix [[1 2] [3 4]]})))))
+
+(t/deftest validate-optional-test
+  (t/testing "optional field present"
+    (t/is (= {:name "Alice" :age 30}
+             (c/validate {:name :string :age [:optional :int]}
+                         {:name "Alice" :age 30}))))
+
+  (t/testing "optional field missing"
+    (t/is (= {:name "Alice"}
+             (c/validate {:name :string :age [:optional :int]}
+                         {:name "Alice"}))))
+
+  (t/testing "optional field with nil value"
+    (t/is (= {:name "Alice" :age nil}
+             (c/validate {:name :string :age [:optional :int]}
+                         {:name "Alice" :age nil}))))
+
+  (t/testing "optional field with wrong type"
+    (t/is (thrown? clojure.lang.ExceptionInfo
+            (c/validate {:name :string :age [:optional :int]}
+                        {:name "Alice" :age "30"}))))
+
+  (t/testing "optional nested map"
+    (t/is (= {:user {:name "Alice"}}
+             (c/validate {:user [:optional {:name :string}]}
+                         {:user {:name "Alice"}}))))
+
+  (t/testing "optional nested map missing"
+    (t/is (= {}
+             (c/validate {:user [:optional {:name :string}]}
+                         {}))))
+
+  (t/testing "optional vector"
+    (t/is (= {:ids [1 2 3]}
+             (c/validate {:ids [:optional [:int]]}
+                         {:ids [1 2 3]}))))
+
+  (t/testing "optional vector missing"
+    (t/is (= {}
+             (c/validate {:ids [:optional [:int]]}
+                         {})))))
