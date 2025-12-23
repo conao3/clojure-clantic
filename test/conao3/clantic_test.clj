@@ -29,7 +29,8 @@
 (t/deftest model-validate-types-test
   (t/testing ":string"
     (t/is (= {:v "hello"} (c/validate {:v :string} {:v "hello"})))
-    (t/is (= {:v "123"} (c/validate {:v :string} {:v 123}))))
+    (t/is (thrown? clojure.lang.ExceptionInfo
+            (c/validate {:v :string} {:v 123}))))
 
   (t/testing ":int"
     (t/is (= {:v 42} (c/validate {:v :int} {:v 42})))

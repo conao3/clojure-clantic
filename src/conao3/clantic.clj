@@ -59,9 +59,7 @@
                                "false" false
                                v)
                  :else v)
-      :string (cond
-                (string? v) v
-                :else (str v))
+      :string v
       :keyword (cond
                  (keyword? v) v
                  (string? v) (keyword v)
