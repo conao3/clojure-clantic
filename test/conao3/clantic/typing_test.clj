@@ -45,7 +45,10 @@
     (t/is (= [:default ct/int 0] (ct/default ct/int 0))))
 
   (t/testing "union wraps types"
-    (t/is (= [:or ct/str ct/int] (ct/union ct/str ct/int)))))
+    (t/is (= [:or ct/str ct/int] (ct/union ct/str ct/int))))
+
+  (t/testing "enum wraps values"
+    (t/is (= [:enum "a" "b" "c"] (ct/enum "a" "b" "c")))))
 
 (t/deftest integration-test
   (t/testing "schema with typing functions"
@@ -79,4 +82,9 @@
                          {:id "abc"})))
     (t/is (= {:id 123}
              (c/validate {:id (ct/union ct/str ct/int)}
-                         {:id 123})))))
+                         {:id 123}))))
+
+  (t/testing "schema with enum"
+    (t/is (= {:status "active"}
+             (c/validate {:status (ct/enum "active" "inactive")}
+                         {:status "active"})))))

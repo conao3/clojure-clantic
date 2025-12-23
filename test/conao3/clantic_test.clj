@@ -317,3 +317,39 @@
     (t/is (= {:values ["a" 1 "b" 2]}
              (c/validate {:values [[:or :string :int]]}
                          {:values ["a" 1 "b" 2]})))))
+
+(t/deftest validate-enum-test
+  (t/testing "enum with valid string"
+    (t/is (= {:status "active"}
+             (c/validate {:status [:enum "active" "inactive" "pending"]}
+                         {:status "active"}))))
+
+  (t/testing "enum with another valid value"
+    (t/is (= {:status "pending"}
+             (c/validate {:status [:enum "active" "inactive" "pending"]}
+                         {:status "pending"}))))
+
+  (t/testing "enum validation error"
+    (t/is (thrown? clojure.lang.ExceptionInfo
+            (c/validate {:status [:enum "active" "inactive"]}
+                        {:status "unknown"}))))
+
+  (t/testing "enum with keywords"
+    (t/is (= {:type :admin}
+             (c/validate {:type [:enum :admin :user :guest]}
+                         {:type :admin}))))
+
+  (t/testing "enum with integers"
+    (t/is (= {:level 1}
+             (c/validate {:level [:enum 1 2 3]}
+                         {:level 1}))))
+
+  (t/testing "enum in optional"
+    (t/is (= {:name "Alice"}
+             (c/validate {:name :string :role [:optional [:enum :admin :user]]}
+                         {:name "Alice"}))))
+
+  (t/testing "enum in vector"
+    (t/is (= {:statuses ["active" "pending"]}
+             (c/validate {:statuses [[:enum "active" "inactive" "pending"]]}
+                         {:statuses ["active" "pending"]})))))

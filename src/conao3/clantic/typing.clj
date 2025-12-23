@@ -39,3 +39,7 @@
 (defn union [& schema-fns]
   (into [:or] schema-fns))
 (m/=> union [:=> [:cat [:* :any]] [:vector :any]])
+
+(defn enum [& values]
+  (into [:enum] values))
+(m/=> enum [:=> [:cat [:* :any]] [:vector :any]])

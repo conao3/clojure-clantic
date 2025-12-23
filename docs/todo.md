@@ -10,7 +10,7 @@
 ## Type System
 
 - [x] Union type - `[:or :string :int]`
-- [ ] Literal type - `[:enum "a" "b" "c"]`
+- [x] Literal type - `[:enum "a" "b" "c"]`
 - [ ] Enum support
 - [ ] DateTime types - `:date`, `:time`, `:instant`
 - [ ] Constrained string types - email, URL, regex pattern
