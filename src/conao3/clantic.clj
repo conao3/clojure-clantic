@@ -61,7 +61,19 @@
                  :else v)
       :string (cond
                 (string? v) v
-                :else (clojure.core/str v))
+                :else (str v))
+      :keyword (cond
+                 (keyword? v) v
+                 (string? v) (keyword v)
+                 :else v)
+      :symbol (cond
+                (symbol? v) v
+                (string? v) (symbol v)
+                :else v)
+      :uuid (cond
+              (uuid? v) v
+              (string? v) (parse-uuid v)
+              :else v)
       v)
     (catch Exception _ v)))
 (m/=> coerce-to-type [:=> [:cat :keyword :any] :any])

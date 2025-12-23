@@ -52,17 +52,18 @@
 
   (t/testing ":keyword"
     (t/is (= {:v :foo} (c/validate {:v :keyword} {:v :foo})))
+    (t/is (= {:v :foo} (c/validate {:v :keyword} {:v "foo"})))
     (t/is (thrown? clojure.lang.ExceptionInfo
-            (c/validate {:v :keyword} {:v "foo"}))))
+                   (c/validate {:v :keyword} {:v nil}))))
 
   (t/testing ":symbol"
     (t/is (= {:v 'foo} (c/validate {:v :symbol} {:v 'foo})))
-    (t/is (thrown? clojure.lang.ExceptionInfo
-            (c/validate {:v :symbol} {:v "foo"}))))
+    (t/is (= {:v 'foo} (c/validate {:v :symbol} {:v "foo"}))))
 
   (t/testing ":uuid"
     (let [uuid (random-uuid)]
-      (t/is (= {:v uuid} (c/validate {:v :uuid} {:v uuid}))))
+      (t/is (= {:v uuid} (c/validate {:v :uuid} {:v uuid})))
+      (t/is (= {:v uuid} (c/validate {:v :uuid} {:v (str uuid)}))))
     (t/is (thrown? clojure.lang.ExceptionInfo
             (c/validate {:v :uuid} {:v "not-a-uuid"}))))
 
@@ -238,6 +239,22 @@
     (t/is (= {:enabled false}
              (c/validate {:enabled :boolean}
                          {:enabled "false"}))))
+
+  (t/testing "coerce string to keyword"
+    (t/is (= {:status :active}
+             (c/validate {:status :keyword}
+                         {:status "active"}))))
+
+  (t/testing "coerce string to symbol"
+    (t/is (= {:name 'foo}
+             (c/validate {:name :symbol}
+                         {:name "foo"}))))
+
+  (t/testing "coerce string to uuid"
+    (let [uuid (random-uuid)]
+      (t/is (= {:id uuid}
+               (c/validate {:id :uuid}
+                           {:id (str uuid)})))))
 
   (t/testing "coerce invalid string to int throws"
     (t/is (thrown? clojure.lang.ExceptionInfo
