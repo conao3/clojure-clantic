@@ -38,6 +38,54 @@
        (into [:map])))
 (m/=> schema->malli [:=> [:cat :map] [:vector :any]])
 
+(declare coerce-by-schema)
+
+(defn- coerce-to-type [target-type v]
+  (try
+    (case target-type
+      :int (cond
+             (int? v) v
+             (string? v) (Long/parseLong v)
+             :else v)
+      :double (cond
+                (double? v) v
+                (int? v) (double v)
+                (string? v) (Double/parseDouble v)
+                :else v)
+      :boolean (cond
+                 (boolean? v) v
+                 (string? v) (case v
+                               "true" true
+                               "false" false
+                               v)
+                 :else v)
+      :string (cond
+                (string? v) v
+                :else (clojure.core/str v))
+      v)
+    (catch Exception _ v)))
+(m/=> coerce-to-type [:=> [:cat :keyword :any] :any])
+
+(defn- coerce-value [schema-v v]
+  (cond
+    (fn? schema-v) (coerce-value (schema-v) v)
+    (keyword? schema-v) (coerce-to-type schema-v v)
+    (default-schema? schema-v) (coerce-value (second schema-v) v)
+    (optional-schema? schema-v) (when (some? v) (coerce-value (second schema-v) v))
+    (vector-schema? schema-v) (mapv #(coerce-value (first schema-v) %) v)
+    (map? schema-v) (coerce-by-schema schema-v v)
+    :else v))
+(m/=> coerce-value [:=> [:cat :any :any] :any])
+
+(defn- coerce-by-schema [schema value]
+  (->> schema
+       (map (fn [[k schema-v]]
+              (when (contains? value k)
+                [k (coerce-value schema-v (get value k))])))
+       (filter some?)
+       (into {})))
+(m/=> coerce-by-schema [:=> [:cat :map :map] :map])
+
 (declare select-by-schema)
 
 (defn- select-value [schema-v v]
@@ -67,10 +115,11 @@
 (m/=> explain-humanized [:=> [:cat :any :any] [:maybe :map]])
 
 (defn validate [schema value]
-  (let [malli-schema (schema->malli schema)]
-    (if (m/validate malli-schema value)
-      (select-by-schema schema value)
-      (throw (ex-info "Validation failed" {:errors (explain-humanized malli-schema value)
+  (let [coerced-value (coerce-by-schema schema value)
+        malli-schema (schema->malli schema)]
+    (if (m/validate malli-schema coerced-value)
+      (select-by-schema schema coerced-value)
+      (throw (ex-info "Validation failed" {:errors (explain-humanized malli-schema coerced-value)
                                            :value value
                                            :schema schema})))))
 (m/=> validate [:=> [:cat :map :map] :map])

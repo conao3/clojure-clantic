@@ -21,7 +21,7 @@ Add to your `deps.edn`:
 
 (c/validate {:name :string :age :int}
             {:name "Alice" :age "30"})
-;;=> throws ExceptionInfo
+;;=> {:name "Alice" :age 30}  (auto-coercion from string)
 
 (c/validate {:a :int} {:a 42 :b 2})
 ;;=> {:a 42}  (extra keys are removed)

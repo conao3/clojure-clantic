@@ -12,13 +12,7 @@
   (t/testing "throws for invalid data"
     (t/is (thrown-with-msg? clojure.lang.ExceptionInfo #"Validation failed"
             (c/validate {:name :string :age :int}
-                        {:name "Alice" :age "30"})))
-    (let [ex (try
-               (c/validate {:name :string :age :int}
-                           {:name 123 :age "30"})
-               (catch Exception e e))]
-      (t/is (= {:name ["should be a string"] :age ["should be an integer"]}
-               (:errors (ex-data ex))))))
+                        {:name "Alice" :age "not-a-number"}))))
 
   (t/testing "missing keys"
     (let [ex (try
@@ -35,24 +29,26 @@
 (t/deftest model-validate-types-test
   (t/testing ":string"
     (t/is (= {:v "hello"} (c/validate {:v :string} {:v "hello"})))
-    (t/is (thrown? clojure.lang.ExceptionInfo
-            (c/validate {:v :string} {:v 123}))))
+    (t/is (= {:v "123"} (c/validate {:v :string} {:v 123}))))
 
   (t/testing ":int"
     (t/is (= {:v 42} (c/validate {:v :int} {:v 42})))
+    (t/is (= {:v 42} (c/validate {:v :int} {:v "42"})))
     (t/is (thrown? clojure.lang.ExceptionInfo
-            (c/validate {:v :int} {:v "42"}))))
+            (c/validate {:v :int} {:v "not-a-number"}))))
 
   (t/testing ":double"
     (t/is (= {:v 3.14} (c/validate {:v :double} {:v 3.14})))
+    (t/is (= {:v 3.14} (c/validate {:v :double} {:v "3.14"})))
     (t/is (thrown? clojure.lang.ExceptionInfo
-            (c/validate {:v :double} {:v "3.14"}))))
+            (c/validate {:v :double} {:v "not-a-number"}))))
 
   (t/testing ":boolean"
     (t/is (= {:v true} (c/validate {:v :boolean} {:v true})))
     (t/is (= {:v false} (c/validate {:v :boolean} {:v false})))
+    (t/is (= {:v true} (c/validate {:v :boolean} {:v "true"})))
     (t/is (thrown? clojure.lang.ExceptionInfo
-            (c/validate {:v :boolean} {:v "true"}))))
+            (c/validate {:v :boolean} {:v "yes"}))))
 
   (t/testing ":keyword"
     (t/is (= {:v :foo} (c/validate {:v :keyword} {:v :foo})))
@@ -86,13 +82,10 @@
              (c/validate {:user {:name :string}}
                          {:user {:name "Alice" :age 30}}))))
 
-  (t/testing "nested map validation error"
-    (let [ex (try
-               (c/validate {:user {:name :string :age :int}}
-                           {:user {:name "Alice" :age "30"}})
-               (catch Exception e e))]
-      (t/is (= {:user {:age ["should be an integer"]}}
-               (:errors (ex-data ex))))))
+  (t/testing "nested map with coercion"
+    (t/is (= {:user {:name "Alice" :age 30}}
+             (c/validate {:user {:name :string :age :int}}
+                         {:user {:name "Alice" :age "30"}}))))
 
   (t/testing "deeply nested map"
     (t/is (= {:a {:b {:c 42}}}
@@ -125,10 +118,10 @@
              (c/validate {:users [{:name :string}]}
                          {:users [{:name "Alice" :age 30} {:name "Bob" :extra "data"}]}))))
 
-  (t/testing "vector of maps validation error"
-    (t/is (thrown? clojure.lang.ExceptionInfo
-            (c/validate {:users [{:name :string :age :int}]}
-                        {:users [{:name "Alice" :age "30"}]}))))
+  (t/testing "vector of maps with coercion"
+    (t/is (= {:users [{:name "Alice" :age 30}]}
+             (c/validate {:users [{:name :string :age :int}]}
+                         {:users [{:name "Alice" :age "30"}]}))))
 
   (t/testing "nested vector"
     (t/is (= {:matrix [[1 2] [3 4]]}
@@ -151,10 +144,10 @@
              (c/validate {:name :string :age [:optional :int]}
                          {:name "Alice" :age nil}))))
 
-  (t/testing "optional field with wrong type"
-    (t/is (thrown? clojure.lang.ExceptionInfo
-            (c/validate {:name :string :age [:optional :int]}
-                        {:name "Alice" :age "30"}))))
+  (t/testing "optional field with coercion"
+    (t/is (= {:name "Alice" :age 30}
+             (c/validate {:name :string :age [:optional :int]}
+                         {:name "Alice" :age "30"}))))
 
   (t/testing "optional nested map"
     (t/is (= {:user {:name "Alice"}}
@@ -187,10 +180,10 @@
              (c/validate {:name :string :age [:default :int 0]}
                          {:name "Alice"}))))
 
-  (t/testing "default field with wrong type"
-    (t/is (thrown? clojure.lang.ExceptionInfo
-            (c/validate {:name :string :age [:default :int 0]}
-                        {:name "Alice" :age "30"}))))
+  (t/testing "default field with coercion"
+    (t/is (= {:name "Alice" :age 30}
+             (c/validate {:name :string :age [:default :int 0]}
+                         {:name "Alice" :age "30"}))))
 
   (t/testing "default with string"
     (t/is (= {:name "Anonymous"}
@@ -216,3 +209,52 @@
     (t/is (= {:ids [1 2 3]}
              (c/validate {:ids [:default [:int] []]}
                          {:ids [1 2 3]})))))
+
+(t/deftest validate-coerce-test
+  (t/testing "coerce string to int"
+    (t/is (= {:age 30}
+             (c/validate {:age :int}
+                         {:age "30"}))))
+
+  (t/testing "coerce int stays int"
+    (t/is (= {:age 30}
+             (c/validate {:age :int}
+                         {:age 30}))))
+
+  (t/testing "coerce string to double"
+    (t/is (= {:price 3.14}
+             (c/validate {:price :double}
+                         {:price "3.14"}))))
+
+  (t/testing "coerce int to double"
+    (t/is (= {:price 3.0}
+             (c/validate {:price :double}
+                         {:price 3}))))
+
+  (t/testing "coerce string to boolean"
+    (t/is (= {:enabled true}
+             (c/validate {:enabled :boolean}
+                         {:enabled "true"})))
+    (t/is (= {:enabled false}
+             (c/validate {:enabled :boolean}
+                         {:enabled "false"}))))
+
+  (t/testing "coerce invalid string to int throws"
+    (t/is (thrown? clojure.lang.ExceptionInfo
+            (c/validate {:age :int}
+                        {:age "not-a-number"}))))
+
+  (t/testing "coerce with optional"
+    (t/is (= {:name "Alice"}
+             (c/validate {:name :string :age [:optional :int]}
+                         {:name "Alice"}))))
+
+  (t/testing "coerce with default"
+    (t/is (= {:age 0}
+             (c/validate {:age [:default :int 0]}
+                         {}))))
+
+  (t/testing "coerce in vector"
+    (t/is (= {:ids [1 2 3]}
+             (c/validate {:ids [:int]}
+                         {:ids ["1" "2" "3"]})))))
