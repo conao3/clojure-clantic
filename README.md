@@ -21,88 +21,141 @@ Add to your `deps.edn`:
 
 (c/validate {:name :string :age :int}
             {:name "Alice" :age "30"})
-;;=> {:name "Alice" :age 30}  (auto-coercion from string)
+;;=> {:name "Alice" :age 30}  ; auto-coercion
 
 (c/validate {:a :int} {:a 42 :b 2})
-;;=> {:a 42}  (extra keys are removed)
+;;=> {:a 42}  ; extra keys removed
+```
 
+## Primitive Types
+
+| Type | Description | Coercion |
+|------|-------------|----------|
+| `:string` | String | - |
+| `:int` | Integer | `"42"` → `42` |
+| `:double` | Float | `"3.14"` → `3.14`, `3` → `3.0` |
+| `:boolean` | Boolean | `"true"` → `true`, `"false"` → `false` |
+| `:keyword` | Keyword | `"foo"` → `:foo` |
+| `:symbol` | Symbol | `"foo"` → `foo` |
+| `:uuid` | UUID | `"550e8400-..."` → `#uuid "550e8400-..."` |
+| `:nil` | Nil | - |
+
+## DateTime Types
+
+| Type | Java Class | Example |
+|------|------------|---------|
+| `:local-date` | LocalDate | `"2024-01-15"` |
+| `:local-time` | LocalTime | `"10:30:00"` |
+| `:local-date-time` | LocalDateTime | `"2024-01-15T10:30:00"` |
+| `:offset-date-time` | OffsetDateTime | `"2024-01-15T10:30:00+09:00"` |
+
+```clojure
+(c/validate {:date :local-date}
+            {:date "2024-01-15"})
+;;=> {:date #object[java.time.LocalDate "2024-01-15"]}
+```
+
+## Composite Types
+
+### Nested Map
+
+```clojure
 (c/validate {:user {:name :string :age :int}}
             {:user {:name "Alice" :age 30}})
 ;;=> {:user {:name "Alice" :age 30}}
+```
 
-(c/validate {:user {:name :string}}
-            {:user {:name "Alice" :age 30 :extra "data"}})
-;;=> {:user {:name "Alice"}}  (nested extra keys are also removed)
+### Vector
 
+```clojure
 (c/validate {:ids [:int]}
             {:ids [1 2 3]})
-;;=> {:ids [1 2 3]}  (vector validation)
+;;=> {:ids [1 2 3]}
 
 (c/validate {:users [{:name :string}]}
-            {:users [{:name "Alice" :age 30} {:name "Bob"}]})
-;;=> {:users [{:name "Alice"} {:name "Bob"}]}  (vector of maps)
+            {:users [{:name "Alice"} {:name "Bob"}]})
+;;=> {:users [{:name "Alice"} {:name "Bob"}]}
+```
 
+### Set
+
+```clojure
+(c/validate {:tags [:set :string]}
+            {:tags #{"a" "b" "c"}})
+;;=> {:tags #{"a" "b" "c"}}
+```
+
+### Map-of
+
+```clojure
+(c/validate {:headers [:map-of :keyword :string]}
+            {:headers {:content-type "application/json"}})
+;;=> {:headers {:content-type "application/json"}}
+
+(c/validate {:scores [:map-of :string :int]}
+            {:scores {"alice" "100" "bob" "85"}})
+;;=> {:scores {"alice" 100 "bob" 85}}  ; value coercion
+```
+
+## Union Type
+
+```clojure
+(c/validate {:id [:or :string :int]}
+            {:id "abc"})
+;;=> {:id "abc"}
+
+(c/validate {:id [:or :string :int]}
+            {:id 123})
+;;=> {:id 123}
+
+(c/validate {:id [:or :int :string]}
+            {:id "42"})
+;;=> {:id 42}  ; first matching type wins (with coercion)
+```
+
+## Enum Type
+
+```clojure
+(c/validate {:status [:enum "active" "inactive" "pending"]}
+            {:status "active"})
+;;=> {:status "active"}
+
+(c/validate {:role [:enum :admin :user :guest]}
+            {:role :admin})
+;;=> {:role :admin}
+
+;; with predefined values
+(def StatusEnum ["active" "inactive" "pending"])
+(c/validate {:status [:enum StatusEnum]}
+            {:status "active"})
+;;=> {:status "active"}
+```
+
+## Modifiers
+
+### Optional
+
+```clojure
 (c/validate {:name :string :age [:optional :int]}
             {:name "Alice"})
-;;=> {:name "Alice"}  (optional field can be missing)
+;;=> {:name "Alice"}
 
 (c/validate {:name :string :age [:optional :int]}
             {:name "Alice" :age nil})
-;;=> {:name "Alice" :age nil}  (optional field can be nil)
-
-(c/validate {:name :string :age [:default :int 0]}
-            {:name "Alice"})
-;;=> {:name "Alice" :age 0}  (default value when missing)
+;;=> {:name "Alice" :age nil}
 ```
 
-## API
-
-### validate
-
-Validates a value against a schema and returns only the keys defined in the schema.
+### Default
 
 ```clojure
-(c/validate schema value)
+(c/validate {:name :string :age [:default :int 0]}
+            {:name "Alice"})
+;;=> {:name "Alice" :age 0}
 ```
-
-**Arguments:**
-- `schema` - A map of keyword to malli schema type or nested map (e.g., `{:name :string :age :int}` or `{:user {:name :string}}`)
-- `value` - The map to validate
-
-**Returns:**
-- A map containing only the keys defined in the schema (extra keys are removed)
-
-**Throws:**
-- `ExceptionInfo` if validation fails, with ex-data containing:
-  - `:errors` - humanized error messages as a map
-  - `:value` - the original value
-  - `:schema` - the original schema
-
-**Supported types:**
-- `:string` - string values
-- `:int` - integer values
-- `:double` - floating point values
-- `:boolean` - boolean values
-- `:keyword` - keyword values
-- `:symbol` - symbol values
-- `:uuid` - UUID values
-- `:nil` - nil value
-
-**Composite types:**
-- `[:type]` - vector of values (e.g., `[:int]` for vector of integers)
-- `[{:key :type}]` - vector of maps
-- `{:key :type}` - nested map
-
-**Modifiers:**
-- `[:optional :type]` - optional field (can be missing or nil)
-- `[:default :type value]` - default value when field is missing
-
-**Special values:**
-- `nil` - nil value (equivalent to `:nil`)
 
 ## Typing DSL
 
-For a more readable schema definition, use the `conao3.clantic.typing` namespace:
+For a more readable schema definition:
 
 ```clojure
 (require '[conao3.clantic :as c])
@@ -110,38 +163,63 @@ For a more readable schema definition, use the `conao3.clantic.typing` namespace
 
 (c/validate {:name ct/str :age ct/int}
             {:name "Alice" :age 30})
-;;=> {:name "Alice" :age 30}
-
-(c/validate {:name ct/str :age (ct/optional ct/int)}
-            {:name "Alice"})
-;;=> {:name "Alice"}
 
 (c/validate {:ids (ct/seq ct/int)}
             {:ids [1 2 3]})
-;;=> {:ids [1 2 3]}
 
-(c/validate {:users (ct/seq {:name ct/str})}
-            {:users [{:name "Alice"} {:name "Bob"}]})
-;;=> {:users [{:name "Alice"} {:name "Bob"}]}
+(c/validate {:tags (ct/set-of ct/keyword)}
+            {:tags #{:a :b}})
 
-(c/validate {:name ct/str :age (ct/default ct/int 0)}
-            {:name "Alice"})
-;;=> {:name "Alice" :age 0}
+(c/validate {:data (ct/map-of ct/keyword ct/str)}
+            {:data {:a "1" :b "2"}})
+
+(c/validate {:id (ct/union ct/str ct/int)}
+            {:id 123})
+
+(c/validate {:status (ct/enum "active" "inactive")}
+            {:status "active"})
+
+(c/validate {:age (ct/optional ct/int)}
+            {})
+
+(c/validate {:age (ct/default ct/int 0)}
+            {})
 ```
 
-**Available types:**
-- `ct/str` - string
-- `ct/int` - integer
-- `ct/double` - floating point
-- `ct/bool` - boolean
-- `ct/keyword` - keyword
-- `ct/symbol` - symbol
-- `ct/uuid` - UUID
+### Available Functions
 
-**Composite types:**
-- `(ct/seq schema)` - sequence of values
-- `(ct/optional schema)` - optional field
-- `(ct/default schema value)` - default value when missing
+| Function | Returns | Description |
+|----------|---------|-------------|
+| `ct/str` | `:string` | String type |
+| `ct/int` | `:int` | Integer type |
+| `ct/double` | `:double` | Float type |
+| `ct/bool` | `:boolean` | Boolean type |
+| `ct/keyword` | `:keyword` | Keyword type |
+| `ct/symbol` | `:symbol` | Symbol type |
+| `ct/uuid` | `:uuid` | UUID type |
+| `ct/local-date` | `:local-date` | LocalDate type |
+| `ct/local-time` | `:local-time` | LocalTime type |
+| `ct/local-date-time` | `:local-date-time` | LocalDateTime type |
+| `ct/offset-date-time` | `:offset-date-time` | OffsetDateTime type |
+| `(ct/seq schema)` | `[schema]` | Vector of values |
+| `(ct/set-of schema)` | `[:set schema]` | Set of values |
+| `(ct/map-of k v)` | `[:map-of k v]` | Map with typed keys/values |
+| `(ct/union & schemas)` | `[:or ...]` | Union type |
+| `(ct/enum & values)` | `[:enum ...]` | Enum type |
+| `(ct/optional schema)` | `[:optional schema]` | Optional field |
+| `(ct/default schema v)` | `[:default schema v]` | Default value |
+
+## Error Handling
+
+```clojure
+(try
+  (c/validate {:age :int} {:age "not-a-number"})
+  (catch Exception e
+    (ex-data e)))
+;;=> {:errors {:age ["should be an integer"]}
+;;    :value {:age "not-a-number"}
+;;    :schema {:age :int}}
+```
 
 ## Development
 
