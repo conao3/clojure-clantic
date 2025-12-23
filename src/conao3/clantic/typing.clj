@@ -55,3 +55,7 @@
 (defn enum [& values]
   (into [:enum] values))
 (m/=> enum [:=> [:cat [:* :any]] [:vector :any]])
+
+(defn map-of [key-schema value-schema]
+  [:map-of key-schema value-schema])
+(m/=> map-of [:=> [:cat :any :any] [:vector :any]])

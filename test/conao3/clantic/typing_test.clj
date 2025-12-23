@@ -48,7 +48,10 @@
     (t/is (= [:or ct/str ct/int] (ct/union ct/str ct/int))))
 
   (t/testing "enum wraps values"
-    (t/is (= [:enum "a" "b" "c"] (ct/enum "a" "b" "c")))))
+    (t/is (= [:enum "a" "b" "c"] (ct/enum "a" "b" "c"))))
+
+  (t/testing "map-of wraps key and value schemas"
+    (t/is (= [:map-of ct/keyword ct/str] (ct/map-of ct/keyword ct/str)))))
 
 (t/deftest integration-test
   (t/testing "schema with typing functions"
@@ -87,4 +90,9 @@
   (t/testing "schema with enum"
     (t/is (= {:status "active"}
              (c/validate {:status (ct/enum "active" "inactive")}
-                         {:status "active"})))))
+                         {:status "active"}))))
+
+  (t/testing "schema with map-of"
+    (t/is (= {:headers {:content-type "json"}}
+             (c/validate {:headers (ct/map-of ct/keyword ct/str)}
+                         {:headers {:content-type "json"}})))))

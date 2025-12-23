@@ -423,3 +423,49 @@
     (t/is (thrown? clojure.lang.ExceptionInfo
             (c/validate {:d :local-date}
                         {:d "not-a-date"})))))
+
+(t/deftest validate-map-of-test
+  (t/testing "map-of keyword to string"
+    (t/is (= {:headers {:content-type "application/json" :accept "text/html"}}
+             (c/validate {:headers [:map-of :keyword :string]}
+                         {:headers {:content-type "application/json" :accept "text/html"}}))))
+
+  (t/testing "map-of string to int"
+    (t/is (= {:scores {"alice" 100 "bob" 85}}
+             (c/validate {:scores [:map-of :string :int]}
+                         {:scores {"alice" 100 "bob" 85}}))))
+
+  (t/testing "map-of with coercion on values"
+    (t/is (= {:scores {"alice" 100 "bob" 85}}
+             (c/validate {:scores [:map-of :string :int]}
+                         {:scores {"alice" "100" "bob" "85"}}))))
+
+  (t/testing "map-of empty map"
+    (t/is (= {:data {}}
+             (c/validate {:data [:map-of :keyword :string]}
+                         {:data {}}))))
+
+  (t/testing "map-of with string key coercion to keyword"
+    (t/is (= {:data {:string-key "value"}}
+             (c/validate {:data [:map-of :keyword :string]}
+                         {:data {"string-key" "value"}}))))
+
+  (t/testing "map-of validation error on key"
+    (t/is (thrown? clojure.lang.ExceptionInfo
+            (c/validate {:data [:map-of :keyword :string]}
+                        {:data {123 "value"}}))))
+
+  (t/testing "map-of validation error on value"
+    (t/is (thrown? clojure.lang.ExceptionInfo
+            (c/validate {:data [:map-of :keyword :int]}
+                        {:data {:a "not-a-number"}}))))
+
+  (t/testing "map-of in optional"
+    (t/is (= {:name "test"}
+             (c/validate {:name :string :meta [:optional [:map-of :keyword :string]]}
+                         {:name "test"}))))
+
+  (t/testing "map-of with nested map values"
+    (t/is (= {:users {:alice {:age 30} :bob {:age 25}}}
+             (c/validate {:users [:map-of :keyword {:age :int}]}
+                         {:users {:alice {:age 30} :bob {:age 25}}})))))

@@ -23,6 +23,10 @@
   (and (vector? v) (>= (count v) 2) (= :enum (first v))))
 (m/=> enum-schema? [:=> [:cat :any] :boolean])
 
+(defn- map-of-schema? [v]
+  (and (vector? v) (= 3 (count v)) (= :map-of (first v))))
+(m/=> map-of-schema? [:=> [:cat :any] :boolean])
+
 (declare schema->malli)
 
 (defn- convert-schema [v]
@@ -35,6 +39,7 @@
     (enum-schema? v) (if (and (= 2 (count v)) (sequential? (second v)))
                        (into [:enum] (second v))
                        v)
+    (map-of-schema? v) [:map-of (convert-schema (nth v 1)) (convert-schema (nth v 2))]
     (vector-schema? v) [:vector (convert-schema (first v))]
     (map? v) (schema->malli v)
     (= :local-date v) [:fn #(instance? java.time.LocalDate %)]
@@ -127,6 +132,10 @@
     (default-schema? schema-v) (coerce-value (second schema-v) v)
     (optional-schema? schema-v) (when (some? v) (coerce-value (second schema-v) v))
     (union-schema? schema-v) (try-coerce-union (rest schema-v) v)
+    (map-of-schema? schema-v) (into {} (map (fn [[k val]]
+                                               [(coerce-value (nth schema-v 1) k)
+                                                (coerce-value (nth schema-v 2) val)])
+                                             v))
     (vector-schema? schema-v) (mapv #(coerce-value (first schema-v) %) v)
     (map? schema-v) (coerce-by-schema schema-v v)
     :else v))

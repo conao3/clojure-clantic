@@ -16,7 +16,7 @@
 - [ ] Constrained string types - email, URL, regex pattern
 - [ ] Constrained numeric types - min/max, positive, negative
 - [ ] Set type
-- [ ] Map with typed keys/values - `[:map-of :keyword :string]`
+- [x] Map with typed keys/values - `[:map-of :keyword :string]`
 
 ## Schema Features
 
