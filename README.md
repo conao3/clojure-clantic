@@ -101,37 +101,37 @@ For a more readable schema definition, use the `conao3.clantic.typing` namespace
 
 ```clojure
 (require '[conao3.clantic :as c])
-(require '[conao3.clantic.typing :as t])
+(require '[conao3.clantic.typing :as ct])
 
-(c/validate {:name t/str :age t/int}
+(c/validate {:name ct/str :age ct/int}
             {:name "Alice" :age 30})
 ;;=> {:name "Alice" :age 30}
 
-(c/validate {:name t/str :age (t/optional t/int)}
+(c/validate {:name ct/str :age (ct/optional ct/int)}
             {:name "Alice"})
 ;;=> {:name "Alice"}
 
-(c/validate {:ids (t/seq t/int)}
+(c/validate {:ids (ct/seq ct/int)}
             {:ids [1 2 3]})
 ;;=> {:ids [1 2 3]}
 
-(c/validate {:users (t/seq {:name t/str})}
+(c/validate {:users (ct/seq {:name ct/str})}
             {:users [{:name "Alice"} {:name "Bob"}]})
 ;;=> {:users [{:name "Alice"} {:name "Bob"}]}
 ```
 
 **Available types:**
-- `t/str` - string
-- `t/int` - integer
-- `t/double` - floating point
-- `t/bool` - boolean
-- `t/keyword` - keyword
-- `t/symbol` - symbol
-- `t/uuid` - UUID
+- `ct/str` - string
+- `ct/int` - integer
+- `ct/double` - floating point
+- `ct/bool` - boolean
+- `ct/keyword` - keyword
+- `ct/symbol` - symbol
+- `ct/uuid` - UUID
 
 **Composite types:**
-- `(t/seq schema)` - sequence of values
-- `(t/optional schema)` - optional field
+- `(ct/seq schema)` - sequence of values
+- `(ct/optional schema)` - optional field
 
 ## Development
 
