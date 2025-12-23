@@ -24,6 +24,18 @@
 (defn uuid [] :uuid)
 (m/=> uuid [:=> [:cat] :keyword])
 
+(defn local-date [] :local-date)
+(m/=> local-date [:=> [:cat] :keyword])
+
+(defn local-time [] :local-time)
+(m/=> local-time [:=> [:cat] :keyword])
+
+(defn local-date-time [] :local-date-time)
+(m/=> local-date-time [:=> [:cat] :keyword])
+
+(defn offset-date-time [] :offset-date-time)
+(m/=> offset-date-time [:=> [:cat] :keyword])
+
 (defn seq [schema-fn]
   [schema-fn])
 (m/=> seq [:=> [:cat :any] [:vector :any]])

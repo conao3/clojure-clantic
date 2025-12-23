@@ -37,6 +37,10 @@
                        v)
     (vector-schema? v) [:vector (convert-schema (first v))]
     (map? v) (schema->malli v)
+    (= :local-date v) [:fn #(instance? java.time.LocalDate %)]
+    (= :local-time v) [:fn #(instance? java.time.LocalTime %)]
+    (= :local-date-time v) [:fn #(instance? java.time.LocalDateTime %)]
+    (= :offset-date-time v) [:fn #(instance? java.time.OffsetDateTime %)]
     :else v))
 (m/=> convert-schema [:=> [:cat :any] :any])
 
@@ -84,6 +88,22 @@
               (uuid? v) v
               (string? v) (parse-uuid v)
               :else v)
+      :local-date (cond
+                    (instance? java.time.LocalDate v) v
+                    (string? v) (java.time.LocalDate/parse v)
+                    :else v)
+      :local-time (cond
+                    (instance? java.time.LocalTime v) v
+                    (string? v) (java.time.LocalTime/parse v)
+                    :else v)
+      :local-date-time (cond
+                         (instance? java.time.LocalDateTime v) v
+                         (string? v) (java.time.LocalDateTime/parse v)
+                         :else v)
+      :offset-date-time (cond
+                          (instance? java.time.OffsetDateTime v) v
+                          (string? v) (java.time.OffsetDateTime/parse v)
+                          :else v)
       v)
     (catch Exception _ v)))
 (m/=> coerce-to-type [:=> [:cat :keyword :any] :any])

@@ -365,3 +365,61 @@
       (t/is (= {:role :admin}
                (c/validate {:role [:enum RoleEnum]}
                            {:role :admin}))))))
+
+(t/deftest validate-datetime-test
+  (t/testing ":local-date with LocalDate"
+    (let [date (java.time.LocalDate/of 2024 1 15)]
+      (t/is (= {:d date}
+               (c/validate {:d :local-date}
+                           {:d date})))))
+
+  (t/testing ":local-date with string coercion"
+    (let [date-str "2024-01-15"
+          date (java.time.LocalDate/parse date-str)]
+      (t/is (= {:d date}
+               (c/validate {:d :local-date}
+                           {:d date-str})))))
+
+  (t/testing ":local-time with LocalTime"
+    (let [time (java.time.LocalTime/of 10 30 0)]
+      (t/is (= {:t time}
+               (c/validate {:t :local-time}
+                           {:t time})))))
+
+  (t/testing ":local-time with string coercion"
+    (let [time-str "10:30:00"
+          time (java.time.LocalTime/parse time-str)]
+      (t/is (= {:t time}
+               (c/validate {:t :local-time}
+                           {:t time-str})))))
+
+  (t/testing ":local-date-time with LocalDateTime"
+    (let [dt (java.time.LocalDateTime/of 2024 1 15 10 30 0)]
+      (t/is (= {:dt dt}
+               (c/validate {:dt :local-date-time}
+                           {:dt dt})))))
+
+  (t/testing ":local-date-time with string coercion"
+    (let [dt-str "2024-01-15T10:30:00"
+          dt (java.time.LocalDateTime/parse dt-str)]
+      (t/is (= {:dt dt}
+               (c/validate {:dt :local-date-time}
+                           {:dt dt-str})))))
+
+  (t/testing ":offset-date-time with OffsetDateTime"
+    (let [odt (java.time.OffsetDateTime/of 2024 1 15 10 30 0 0 java.time.ZoneOffset/UTC)]
+      (t/is (= {:odt odt}
+               (c/validate {:odt :offset-date-time}
+                           {:odt odt})))))
+
+  (t/testing ":offset-date-time with string coercion"
+    (let [odt-str "2024-01-15T10:30:00+09:00"
+          odt (java.time.OffsetDateTime/parse odt-str)]
+      (t/is (= {:odt odt}
+               (c/validate {:odt :offset-date-time}
+                           {:odt odt-str})))))
+
+  (t/testing ":local-date validation error"
+    (t/is (thrown? clojure.lang.ExceptionInfo
+            (c/validate {:d :local-date}
+                        {:d "not-a-date"})))))

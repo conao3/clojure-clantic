@@ -12,7 +12,7 @@
 - [x] Union type - `[:or :string :int]`
 - [x] Literal type - `[:enum "a" "b" "c"]`
 - [x] Enum support - `[:enum EnumVector]`
-- [ ] DateTime types - `:date`, `:time`, `:instant`
+- [x] DateTime types - `:local-date`, `:local-time`, `:local-date-time`, `:offset-date-time`
 - [ ] Constrained string types - email, URL, regex pattern
 - [ ] Constrained numeric types - min/max, positive, negative
 - [ ] Set type
