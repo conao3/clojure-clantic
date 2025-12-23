@@ -49,6 +49,10 @@ Add to your `deps.edn`:
 (c/validate {:name :string :age [:optional :int]}
             {:name "Alice" :age nil})
 ;;=> {:name "Alice" :age nil}  (optional field can be nil)
+
+(c/validate {:name :string :age [:default :int 0]}
+            {:name "Alice"})
+;;=> {:name "Alice" :age 0}  (default value when missing)
 ```
 
 ## API
@@ -91,6 +95,7 @@ Validates a value against a schema and returns only the keys defined in the sche
 
 **Modifiers:**
 - `[:optional :type]` - optional field (can be missing or nil)
+- `[:default :type value]` - default value when field is missing
 
 **Special values:**
 - `nil` - nil value (equivalent to `:nil`)
@@ -118,6 +123,10 @@ For a more readable schema definition, use the `conao3.clantic.typing` namespace
 (c/validate {:users (ct/seq {:name ct/str})}
             {:users [{:name "Alice"} {:name "Bob"}]})
 ;;=> {:users [{:name "Alice"} {:name "Bob"}]}
+
+(c/validate {:name ct/str :age (ct/default ct/int 0)}
+            {:name "Alice"})
+;;=> {:name "Alice" :age 0}
 ```
 
 **Available types:**
@@ -132,6 +141,7 @@ For a more readable schema definition, use the `conao3.clantic.typing` namespace
 **Composite types:**
 - `(ct/seq schema)` - sequence of values
 - `(ct/optional schema)` - optional field
+- `(ct/default schema value)` - default value when missing
 
 ## Development
 

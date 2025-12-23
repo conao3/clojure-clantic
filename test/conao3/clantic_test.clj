@@ -175,3 +175,44 @@
     (t/is (= {}
              (c/validate {:ids [:optional [:int]]}
                          {})))))
+
+(t/deftest validate-default-test
+  (t/testing "default field present"
+    (t/is (= {:name "Alice" :age 30}
+             (c/validate {:name :string :age [:default :int 0]}
+                         {:name "Alice" :age 30}))))
+
+  (t/testing "default field missing"
+    (t/is (= {:name "Alice" :age 0}
+             (c/validate {:name :string :age [:default :int 0]}
+                         {:name "Alice"}))))
+
+  (t/testing "default field with wrong type"
+    (t/is (thrown? clojure.lang.ExceptionInfo
+            (c/validate {:name :string :age [:default :int 0]}
+                        {:name "Alice" :age "30"}))))
+
+  (t/testing "default with string"
+    (t/is (= {:name "Anonymous"}
+             (c/validate {:name [:default :string "Anonymous"]}
+                         {}))))
+
+  (t/testing "default with nested map"
+    (t/is (= {:config {:enabled true}}
+             (c/validate {:config [:default {:enabled :boolean} {:enabled false}]}
+                         {:config {:enabled true}}))))
+
+  (t/testing "default nested map missing"
+    (t/is (= {:config {:enabled false}}
+             (c/validate {:config [:default {:enabled :boolean} {:enabled false}]}
+                         {}))))
+
+  (t/testing "default with vector"
+    (t/is (= {:ids []}
+             (c/validate {:ids [:default [:int] []]}
+                         {}))))
+
+  (t/testing "default with vector present"
+    (t/is (= {:ids [1 2 3]}
+             (c/validate {:ids [:default [:int] []]}
+                         {:ids [1 2 3]})))))

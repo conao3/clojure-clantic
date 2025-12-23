@@ -11,12 +11,17 @@
   (and (vector? v) (= 2 (count v)) (= :optional (first v))))
 (m/=> optional-schema? [:=> [:cat :any] :boolean])
 
+(defn- default-schema? [v]
+  (and (vector? v) (= 3 (count v)) (= :default (first v))))
+(m/=> default-schema? [:=> [:cat :any] :boolean])
+
 (declare schema->malli)
 
 (defn- convert-schema [v]
   (cond
     (nil? v) :nil
     (fn? v) (convert-schema (v))
+    (default-schema? v) (convert-schema (second v))
     (optional-schema? v) [:maybe (convert-schema (second v))]
     (vector-schema? v) [:vector (convert-schema (first v))]
     (map? v) (schema->malli v)
@@ -26,9 +31,10 @@
 (defn- schema->malli [schema]
   (->> schema
        (map (fn [[k v]]
-              (if (optional-schema? v)
-                [k {:optional true} (convert-schema v)]
-                [k (convert-schema v)])))
+              (cond
+                (optional-schema? v) [k {:optional true} (convert-schema v)]
+                (default-schema? v) [k {:optional true} (convert-schema v)]
+                :else [k (convert-schema v)])))
        (into [:map])))
 (m/=> schema->malli [:=> [:cat :map] [:vector :any]])
 
@@ -37,6 +43,7 @@
 (defn- select-value [schema-v v]
   (cond
     (fn? schema-v) (select-value (schema-v) v)
+    (default-schema? schema-v) (select-value (second schema-v) v)
     (optional-schema? schema-v) (select-value (second schema-v) v)
     (vector-schema? schema-v) (mapv #(select-value (first schema-v) %) v)
     (map? schema-v) (select-by-schema schema-v v)
@@ -46,10 +53,11 @@
 (defn- select-by-schema [schema value]
   (->> schema
        (map (fn [[k schema-v]]
-              (if (contains? value k)
-                [k (select-value schema-v (get value k))]
-                (when-not (optional-schema? schema-v)
-                  [k (get value k)]))))
+              (cond
+                (contains? value k) [k (select-value schema-v (get value k))]
+                (default-schema? schema-v) [k (nth schema-v 2)]
+                (optional-schema? schema-v) nil
+                :else [k (get value k)])))
        (filter some?)
        (into {})))
 (m/=> select-by-schema [:=> [:cat :map :map] :map])

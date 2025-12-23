@@ -31,3 +31,7 @@
 (defn optional [schema-fn]
   [:optional schema-fn])
 (m/=> optional [:=> [:cat :any] [:vector :any]])
+
+(defn default [schema-fn default-value]
+  [:default schema-fn default-value])
+(m/=> default [:=> [:cat :any :any] [:vector :any]])

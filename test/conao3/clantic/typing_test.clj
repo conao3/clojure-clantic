@@ -39,7 +39,10 @@
 
   (t/testing "optional with nested map"
     (t/is (= [:optional {:name ct/str}]
-             (ct/optional {:name ct/str})))))
+             (ct/optional {:name ct/str}))))
+
+  (t/testing "default wraps type with value"
+    (t/is (= [:default ct/int 0] (ct/default ct/int 0)))))
 
 (t/deftest integration-test
   (t/testing "schema with typing functions"
@@ -60,4 +63,9 @@
   (t/testing "schema with seq of maps"
     (t/is (= {:users [{:name "Alice"} {:name "Bob"}]}
              (c/validate {:users (ct/seq {:name ct/str})}
-                         {:users [{:name "Alice" :age 30} {:name "Bob"}]})))))
+                         {:users [{:name "Alice" :age 30} {:name "Bob"}]}))))
+
+  (t/testing "schema with default"
+    (t/is (= {:name "Alice" :age 0}
+             (c/validate {:name ct/str :age (ct/default ct/int 0)}
+                         {:name "Alice"})))))

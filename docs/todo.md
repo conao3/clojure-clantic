@@ -3,7 +3,7 @@
 ## High Priority
 
 - [x] Optional type - distinguish required vs optional fields
-- [ ] Default values - provide defaults when fields are missing
+- [x] Default values - provide defaults when fields are missing
 - [x] List/Vector type - validate collections like `[{:name :string}]`
 - [ ] Type coercion - auto-convert compatible types (e.g., `"30"` to `30`)
 
