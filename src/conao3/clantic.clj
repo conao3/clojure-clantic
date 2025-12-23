@@ -19,6 +19,10 @@
   (and (vector? v) (>= (count v) 2) (= :or (first v))))
 (m/=> union-schema? [:=> [:cat :any] :boolean])
 
+(defn- enum-schema? [v]
+  (and (vector? v) (>= (count v) 2) (= :enum (first v))))
+(m/=> enum-schema? [:=> [:cat :any] :boolean])
+
 (declare schema->malli)
 
 (defn- convert-schema [v]
@@ -28,6 +32,9 @@
     (default-schema? v) (convert-schema (second v))
     (optional-schema? v) [:maybe (convert-schema (second v))]
     (union-schema? v) (into [:or] (map convert-schema (rest v)))
+    (enum-schema? v) (if (and (= 2 (count v)) (sequential? (second v)))
+                       (into [:enum] (second v))
+                       v)
     (vector-schema? v) [:vector (convert-schema (first v))]
     (map? v) (schema->malli v)
     :else v))

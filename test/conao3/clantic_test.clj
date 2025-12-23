@@ -352,4 +352,16 @@
   (t/testing "enum in vector"
     (t/is (= {:statuses ["active" "pending"]}
              (c/validate {:statuses [[:enum "active" "inactive" "pending"]]}
-                         {:statuses ["active" "pending"]})))))
+                         {:statuses ["active" "pending"]}))))
+
+  (t/testing "enum with predefined values"
+    (let [StatusEnum ["active" "inactive" "pending"]]
+      (t/is (= {:status "active"}
+               (c/validate {:status [:enum StatusEnum]}
+                           {:status "active"})))))
+
+  (t/testing "enum with predefined keyword values"
+    (let [RoleEnum [:admin :user :guest]]
+      (t/is (= {:role :admin}
+               (c/validate {:role [:enum RoleEnum]}
+                           {:role :admin}))))))
