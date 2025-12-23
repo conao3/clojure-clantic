@@ -51,7 +51,10 @@
     (t/is (= [:enum "a" "b" "c"] (ct/enum "a" "b" "c"))))
 
   (t/testing "map-of wraps key and value schemas"
-    (t/is (= [:map-of ct/keyword ct/str] (ct/map-of ct/keyword ct/str)))))
+    (t/is (= [:map-of ct/keyword ct/str] (ct/map-of ct/keyword ct/str))))
+
+  (t/testing "set-of wraps schema"
+    (t/is (= [:set ct/int] (ct/set-of ct/int)))))
 
 (t/deftest integration-test
   (t/testing "schema with typing functions"
@@ -95,4 +98,9 @@
   (t/testing "schema with map-of"
     (t/is (= {:headers {:content-type "json"}}
              (c/validate {:headers (ct/map-of ct/keyword ct/str)}
-                         {:headers {:content-type "json"}})))))
+                         {:headers {:content-type "json"}}))))
+
+  (t/testing "schema with set-of"
+    (t/is (= {:ids #{1 2 3}}
+             (c/validate {:ids (ct/set-of ct/int)}
+                         {:ids #{1 2 3}})))))

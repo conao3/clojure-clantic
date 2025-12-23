@@ -59,3 +59,7 @@
 (defn map-of [key-schema value-schema]
   [:map-of key-schema value-schema])
 (m/=> map-of [:=> [:cat :any :any] [:vector :any]])
+
+(defn set-of [schema]
+  [:set schema])
+(m/=> set-of [:=> [:cat :any] [:vector :any]])

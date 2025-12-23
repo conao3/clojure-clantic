@@ -469,3 +469,39 @@
     (t/is (= {:users {:alice {:age 30} :bob {:age 25}}}
              (c/validate {:users [:map-of :keyword {:age :int}]}
                          {:users {:alice {:age 30} :bob {:age 25}}})))))
+
+(t/deftest validate-set-test
+  (t/testing "set of integers"
+    (t/is (= {:ids #{1 2 3}}
+             (c/validate {:ids [:set :int]}
+                         {:ids #{1 2 3}}))))
+
+  (t/testing "set of strings"
+    (t/is (= {:tags #{"a" "b" "c"}}
+             (c/validate {:tags [:set :string]}
+                         {:tags #{"a" "b" "c"}}))))
+
+  (t/testing "set with coercion"
+    (t/is (= {:ids #{1 2 3}}
+             (c/validate {:ids [:set :int]}
+                         {:ids #{"1" "2" "3"}}))))
+
+  (t/testing "empty set"
+    (t/is (= {:ids #{}}
+             (c/validate {:ids [:set :int]}
+                         {:ids #{}}))))
+
+  (t/testing "set validation error"
+    (t/is (thrown? clojure.lang.ExceptionInfo
+            (c/validate {:ids [:set :int]}
+                        {:ids #{"not-a-number"}}))))
+
+  (t/testing "set of keywords"
+    (t/is (= {:roles #{:admin :user}}
+             (c/validate {:roles [:set :keyword]}
+                         {:roles #{:admin :user}}))))
+
+  (t/testing "set in optional"
+    (t/is (= {:name "test"}
+             (c/validate {:name :string :tags [:optional [:set :string]]}
+                         {:name "test"})))))

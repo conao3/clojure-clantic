@@ -15,7 +15,7 @@
 - [x] DateTime types - `:local-date`, `:local-time`, `:local-date-time`, `:offset-date-time`
 - [ ] Constrained string types - email, URL, regex pattern
 - [ ] Constrained numeric types - min/max, positive, negative
-- [ ] Set type
+- [x] Set type - `[:set :int]`
 - [x] Map with typed keys/values - `[:map-of :keyword :string]`
 
 ## Schema Features
