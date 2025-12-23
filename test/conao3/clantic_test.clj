@@ -276,3 +276,44 @@
     (t/is (= {:ids [1 2 3]}
              (c/validate {:ids [:int]}
                          {:ids ["1" "2" "3"]})))))
+
+(t/deftest validate-union-test
+  (t/testing "union with string"
+    (t/is (= {:v "hello"}
+             (c/validate {:v [:or :string :int]}
+                         {:v "hello"}))))
+
+  (t/testing "union with int"
+    (t/is (= {:v 42}
+             (c/validate {:v [:or :string :int]}
+                         {:v 42}))))
+
+  (t/testing "union first match wins"
+    (t/is (= {:v "42"}
+             (c/validate {:v [:or :string :int]}
+                         {:v "42"}))))
+
+  (t/testing "union with coercion (int first)"
+    (t/is (= {:v 42}
+             (c/validate {:v [:or :int :string]}
+                         {:v "42"}))))
+
+  (t/testing "union validation error"
+    (t/is (thrown? clojure.lang.ExceptionInfo
+            (c/validate {:v [:or :string :int]}
+                        {:v :keyword}))))
+
+  (t/testing "union with nil"
+    (t/is (= {:v nil}
+             (c/validate {:v [:or :nil :string]}
+                         {:v nil}))))
+
+  (t/testing "union in optional"
+    (t/is (= {:name "Alice"}
+             (c/validate {:name :string :id [:optional [:or :string :int]]}
+                         {:name "Alice"}))))
+
+  (t/testing "union in vector"
+    (t/is (= {:values ["a" 1 "b" 2]}
+             (c/validate {:values [[:or :string :int]]}
+                         {:values ["a" 1 "b" 2]})))))

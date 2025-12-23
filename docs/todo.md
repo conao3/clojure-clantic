@@ -9,7 +9,7 @@
 
 ## Type System
 
-- [ ] Union type - `[:or :string :int]`
+- [x] Union type - `[:or :string :int]`
 - [ ] Literal type - `[:enum "a" "b" "c"]`
 - [ ] Enum support
 - [ ] DateTime types - `:date`, `:time`, `:instant`

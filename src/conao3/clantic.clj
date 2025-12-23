@@ -15,6 +15,10 @@
   (and (vector? v) (= 3 (count v)) (= :default (first v))))
 (m/=> default-schema? [:=> [:cat :any] :boolean])
 
+(defn- union-schema? [v]
+  (and (vector? v) (>= (count v) 2) (= :or (first v))))
+(m/=> union-schema? [:=> [:cat :any] :boolean])
+
 (declare schema->malli)
 
 (defn- convert-schema [v]
@@ -23,6 +27,7 @@
     (fn? v) (convert-schema (v))
     (default-schema? v) (convert-schema (second v))
     (optional-schema? v) [:maybe (convert-schema (second v))]
+    (union-schema? v) (into [:or] (map convert-schema (rest v)))
     (vector-schema? v) [:vector (convert-schema (first v))]
     (map? v) (schema->malli v)
     :else v))
@@ -38,7 +43,7 @@
        (into [:map])))
 (m/=> schema->malli [:=> [:cat :map] [:vector :any]])
 
-(declare coerce-by-schema)
+(declare coerce-by-schema coerce-value)
 
 (defn- coerce-to-type [target-type v]
   (try
@@ -76,12 +81,25 @@
     (catch Exception _ v)))
 (m/=> coerce-to-type [:=> [:cat :keyword :any] :any])
 
+(defn- try-coerce-union [types v]
+  (reduce
+   (fn [_ schema-type]
+     (let [coerced (coerce-value schema-type v)
+           malli-schema (convert-schema schema-type)]
+       (if (m/validate malli-schema coerced)
+         (reduced coerced)
+         v)))
+   v
+   types))
+(m/=> try-coerce-union [:=> [:cat [:sequential :any] :any] :any])
+
 (defn- coerce-value [schema-v v]
   (cond
     (fn? schema-v) (coerce-value (schema-v) v)
     (keyword? schema-v) (coerce-to-type schema-v v)
     (default-schema? schema-v) (coerce-value (second schema-v) v)
     (optional-schema? schema-v) (when (some? v) (coerce-value (second schema-v) v))
+    (union-schema? schema-v) (try-coerce-union (rest schema-v) v)
     (vector-schema? schema-v) (mapv #(coerce-value (first schema-v) %) v)
     (map? schema-v) (coerce-by-schema schema-v v)
     :else v))

@@ -42,7 +42,10 @@
              (ct/optional {:name ct/str}))))
 
   (t/testing "default wraps type with value"
-    (t/is (= [:default ct/int 0] (ct/default ct/int 0)))))
+    (t/is (= [:default ct/int 0] (ct/default ct/int 0))))
+
+  (t/testing "union wraps types"
+    (t/is (= [:or ct/str ct/int] (ct/union ct/str ct/int)))))
 
 (t/deftest integration-test
   (t/testing "schema with typing functions"
@@ -68,4 +71,12 @@
   (t/testing "schema with default"
     (t/is (= {:name "Alice" :age 0}
              (c/validate {:name ct/str :age (ct/default ct/int 0)}
-                         {:name "Alice"})))))
+                         {:name "Alice"}))))
+
+  (t/testing "schema with union"
+    (t/is (= {:id "abc"}
+             (c/validate {:id (ct/union ct/str ct/int)}
+                         {:id "abc"})))
+    (t/is (= {:id 123}
+             (c/validate {:id (ct/union ct/str ct/int)}
+                         {:id 123})))))

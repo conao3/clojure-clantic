@@ -35,3 +35,7 @@
 (defn default [schema-fn default-value]
   [:default schema-fn default-value])
 (m/=> default [:=> [:cat :any :any] [:vector :any]])
+
+(defn union [& schema-fns]
+  (into [:or] schema-fns))
+(m/=> union [:=> [:cat [:* :any]] [:vector :any]])
