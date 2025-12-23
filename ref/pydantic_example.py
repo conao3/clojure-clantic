@@ -55,3 +55,66 @@ try:
     User(name="Grace")
 except ValidationError as e:
     print(f"Error: {e}")
+
+print("\n=== Coercion examples ===")
+
+print("\n--- String to int ---")
+user3 = User(name="Henry", age="42")
+print(f"age='42' -> {user3.age} (type: {type(user3.age).__name__})")
+
+print("\n--- Int to string (NOT allowed in pydantic v2) ---")
+try:
+    user4 = User(name=123, age=30)
+    print(f"name=123 -> {user4.name} (type: {type(user4.name).__name__})")
+except ValidationError as e:
+    print(f"name=123 -> Error (int to string not coerced)")
+
+print("\n--- Boolean coercion ---")
+from pydantic import BaseModel as BM
+class BoolModel(BM):
+    flag: bool
+
+print(f"flag=True -> {BoolModel(flag=True).flag}")
+print(f"flag='true' -> {BoolModel(flag='true').flag}")
+print(f"flag='True' -> {BoolModel(flag='True').flag}")
+print(f"flag='yes' -> {BoolModel(flag='yes').flag}")
+print(f"flag='1' -> {BoolModel(flag='1').flag}")
+print(f"flag=1 -> {BoolModel(flag=1).flag}")
+print(f"flag='false' -> {BoolModel(flag='false').flag}")
+print(f"flag='no' -> {BoolModel(flag='no').flag}")
+print(f"flag='0' -> {BoolModel(flag='0').flag}")
+print(f"flag=0 -> {BoolModel(flag=0).flag}")
+
+print("\n--- None/null coercion ---")
+from typing import Optional
+class OptionalModel(BM):
+    value: Optional[int] = None
+
+print(f"value=None -> {OptionalModel(value=None).value}")
+print(f"value missing -> {OptionalModel().value}")
+try:
+    result = OptionalModel(value="null")
+    print(f"value='null' -> {result.value}")
+except ValidationError as e:
+    print(f"value='null' -> Error: {e}")
+
+try:
+    result = OptionalModel(value="None")
+    print(f"value='None' -> {result.value}")
+except ValidationError as e:
+    print(f"value='None' -> Error: {e}")
+
+print("\n--- UUID coercion ---")
+from uuid import UUID
+class UUIDModel(BM):
+    id: UUID
+
+uuid_str = "550e8400-e29b-41d4-a716-446655440000"
+print(f"id='{uuid_str}' -> {UUIDModel(id=uuid_str).id}")
+
+print("\n--- Float/Double coercion ---")
+class FloatModel(BM):
+    price: float
+
+print(f"price='3.14' -> {FloatModel(price='3.14').price}")
+print(f"price=3 -> {FloatModel(price=3).price}")
