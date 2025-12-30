@@ -1,6 +1,15 @@
 # clantic
 
-A pydantic-inspired validation library for Clojure using malli.
+A data validation and coercion library for Clojure, inspired by Python's pydantic. Built on top of malli, clantic provides a declarative, intuitive API for validating and transforming data structures.
+
+## Features
+
+- Declarative schema definitions using Clojure data structures
+- Automatic type coercion (e.g., strings to integers)
+- Nested map and collection support
+- Union types, enums, and optional fields
+- Java time types support (LocalDate, LocalDateTime, etc.)
+- Clean, readable DSL for complex schemas
 
 ## Installation
 
@@ -10,40 +19,38 @@ Add to your `deps.edn`:
 {:deps {io.github.conao/clojure-clantic {:git/tag "v0.1.0" :git/sha "xxxxxxx"}}}
 ```
 
-## Usage
+## Quick Start
 
 ```clojure
 (require '[conao3.clantic :as c])
 
-(c/validate {:name :string :age :int}
-            {:name "Alice" :age 30})
-;;=> {:name "Alice" :age 30}
-
+;; Basic validation with auto-coercion
 (c/validate {:name :string :age :int}
             {:name "Alice" :age "30"})
-;;=> {:name "Alice" :age 30}  ; auto-coercion
+;;=> {:name "Alice" :age 30}
 
+;; Extra keys are automatically stripped
 (c/validate {:a :int} {:a 42 :b 2})
-;;=> {:a 42}  ; extra keys removed
+;;=> {:a 42}
 ```
 
 ## Primitive Types
 
-| Type | Description | Coercion |
-|------|-------------|----------|
-| `:string` | String | - |
-| `:int` | Integer | `"42"` → `42` |
-| `:double` | Float | `"3.14"` → `3.14`, `3` → `3.0` |
-| `:boolean` | Boolean | `"true"` → `true`, `"false"` → `false` |
-| `:keyword` | Keyword | `"foo"` → `:foo` |
-| `:symbol` | Symbol | `"foo"` → `foo` |
-| `:uuid` | UUID | `"550e8400-..."` → `#uuid "550e8400-..."` |
-| `:nil` | Nil | - |
+| Type | Description | Coercion Example |
+|------|-------------|------------------|
+| `:string` | String values | - |
+| `:int` | Integer values | `"42"` -> `42` |
+| `:double` | Floating-point values | `"3.14"` -> `3.14`, `3` -> `3.0` |
+| `:boolean` | Boolean values | `"true"` -> `true` |
+| `:keyword` | Clojure keywords | `"foo"` -> `:foo` |
+| `:symbol` | Clojure symbols | `"foo"` -> `foo` |
+| `:uuid` | UUID values | `"550e8400-..."` -> `#uuid "550e8400-..."` |
+| `:nil` | Nil values | - |
 
-## DateTime Types
+## Date and Time Types
 
-| Type | Java Class | Example |
-|------|------------|---------|
+| Type | Java Class | Example Input |
+|------|------------|---------------|
 | `:local-date` | LocalDate | `"2024-01-15"` |
 | `:local-time` | LocalTime | `"10:30:00"` |
 | `:local-date-time` | LocalDateTime | `"2024-01-15T10:30:00"` |
@@ -57,7 +64,7 @@ Add to your `deps.edn`:
 
 ## Composite Types
 
-### Nested Map
+### Nested Maps
 
 ```clojure
 (c/validate {:user {:name :string :age :int}}
@@ -65,7 +72,7 @@ Add to your `deps.edn`:
 ;;=> {:user {:name "Alice" :age 30}}
 ```
 
-### Vector
+### Vectors
 
 ```clojure
 (c/validate {:ids [:int]}
@@ -77,7 +84,7 @@ Add to your `deps.edn`:
 ;;=> {:users [{:name "Alice"} {:name "Bob"}]}
 ```
 
-### Set
+### Sets
 
 ```clojure
 (c/validate {:tags [:set :string]}
@@ -85,19 +92,20 @@ Add to your `deps.edn`:
 ;;=> {:tags #{"a" "b" "c"}}
 ```
 
-### Map-of
+### Typed Maps
 
 ```clojure
 (c/validate {:headers [:map-of :keyword :string]}
             {:headers {:content-type "application/json"}})
 ;;=> {:headers {:content-type "application/json"}}
 
+;; Values are coerced automatically
 (c/validate {:scores [:map-of :string :int]}
             {:scores {"alice" "100" "bob" "85"}})
-;;=> {:scores {"alice" 100 "bob" 85}}  ; value coercion
+;;=> {:scores {"alice" 100 "bob" 85}}
 ```
 
-## Union Type
+## Union Types
 
 ```clojure
 (c/validate {:id [:or :string :int]}
@@ -108,12 +116,13 @@ Add to your `deps.edn`:
             {:id 123})
 ;;=> {:id 123}
 
+;; The first matching type wins when coercion is possible
 (c/validate {:id [:or :int :string]}
             {:id "42"})
-;;=> {:id 42}  ; first matching type wins (with coercion)
+;;=> {:id 42}
 ```
 
-## Enum Type
+## Enum Types
 
 ```clojure
 (c/validate {:status [:enum "active" "inactive" "pending"]}
@@ -124,7 +133,7 @@ Add to your `deps.edn`:
             {:role :admin})
 ;;=> {:role :admin}
 
-;; with predefined values
+;; Using predefined values
 (def StatusEnum ["active" "inactive" "pending"])
 (c/validate {:status [:enum StatusEnum]}
             {:status "active"})
@@ -133,7 +142,7 @@ Add to your `deps.edn`:
 
 ## Modifiers
 
-### Optional
+### Optional Fields
 
 ```clojure
 (c/validate {:name :string :age [:optional :int]}
@@ -145,7 +154,7 @@ Add to your `deps.edn`:
 ;;=> {:name "Alice" :age nil}
 ```
 
-### Default
+### Default Values
 
 ```clojure
 (c/validate {:name :string :age [:default :int 0]}
@@ -155,7 +164,7 @@ Add to your `deps.edn`:
 
 ## Typing DSL
 
-For a more readable schema definition:
+For more readable schema definitions, use the typing namespace:
 
 ```clojure
 (require '[conao3.clantic :as c])
@@ -186,13 +195,13 @@ For a more readable schema definition:
             {})
 ```
 
-### Available Functions
+### DSL Reference
 
 | Function | Returns | Description |
 |----------|---------|-------------|
 | `ct/str` | `:string` | String type |
 | `ct/int` | `:int` | Integer type |
-| `ct/double` | `:double` | Float type |
+| `ct/double` | `:double` | Floating-point type |
 | `ct/bool` | `:boolean` | Boolean type |
 | `ct/keyword` | `:keyword` | Keyword type |
 | `ct/symbol` | `:symbol` | Symbol type |
@@ -203,13 +212,15 @@ For a more readable schema definition:
 | `ct/offset-date-time` | `:offset-date-time` | OffsetDateTime type |
 | `(ct/seq schema)` | `[schema]` | Vector of values |
 | `(ct/set-of schema)` | `[:set schema]` | Set of values |
-| `(ct/map-of k v)` | `[:map-of k v]` | Map with typed keys/values |
+| `(ct/map-of k v)` | `[:map-of k v]` | Map with typed keys and values |
 | `(ct/union & schemas)` | `[:or ...]` | Union type |
 | `(ct/enum & values)` | `[:enum ...]` | Enum type |
 | `(ct/optional schema)` | `[:optional schema]` | Optional field |
-| `(ct/default schema v)` | `[:default schema v]` | Default value |
+| `(ct/default schema v)` | `[:default schema v]` | Field with default value |
 
 ## Error Handling
+
+Validation errors throw exceptions with detailed information:
 
 ```clojure
 (try
