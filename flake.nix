@@ -21,7 +21,7 @@
         { system, ... }:
         let
           overlay = final: prev: {
-            jdk = prev.jdk21;
+            jdk = prev.jdk25;
             clojure = prev.clojure.override { jdk = final.jdk; };
           };
           pkgs = import inputs.nixpkgs {
